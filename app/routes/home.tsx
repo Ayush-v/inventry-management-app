@@ -60,7 +60,7 @@ async function calculateRecommendedOrder(params: OrderParams) {
 function OrderCalculator() {
   const [dailyUsage, setDailyUsage] = useState(42);
   const [daysUntilNextDelivery, setDaysUntilNextDelivery] = useState(2);
-  const [backupMultiplier, setBackupMultiplier] = useState(0.2);
+  const [backupMultiplier, setBackupMultiplier] = useState<number>(0.0);
   const [weightInPounds, setWeightInPounds] = useState(10);
   const [trays, setTrays] = useState(3);
   const [trayWeight, setTrayWeight] = useState(14);
@@ -69,7 +69,8 @@ function OrderCalculator() {
     roundedOrder: any;
   }>();
 
-  async function calculate() {
+  async function calculate(e: React.FormEvent) {
+    e.preventDefault();
     const result = await calculateRecommendedOrder({
       dailyUsage,
       daysUntilNextDelivery,
@@ -99,7 +100,6 @@ function OrderCalculator() {
         <label className="flex flex-col">
           <span>Daily Usage (lbs):</span>
           <input
-            type="number"
             value={dailyUsage}
             onChange={(e) => setDailyUsage(Number(e.target.value))}
             className="border rounded px-2 py-1"
@@ -109,7 +109,6 @@ function OrderCalculator() {
         <label className="flex flex-col">
           <span>Days Until Delivery:</span>
           <input
-            type="number"
             value={daysUntilNextDelivery}
             onChange={(e) => setDaysUntilNextDelivery(Number(e.target.value))}
             className="border rounded px-2 py-1"
@@ -119,8 +118,8 @@ function OrderCalculator() {
         <label className="flex flex-col">
           <span>Backup Multiplier (%):</span>
           <input
+            step="0.1"
             type="number"
-            step="0.01"
             value={backupMultiplier}
             onChange={(e) => setBackupMultiplier(Number(e.target.value))}
             className="border rounded px-2 py-1"
@@ -130,7 +129,6 @@ function OrderCalculator() {
         <label className="flex flex-col">
           <span>Stock in Pounds:</span>
           <input
-            type="number"
             value={weightInPounds}
             onChange={(e) => setWeightInPounds(Number(e.target.value))}
             className="border rounded px-2 py-1"
@@ -140,7 +138,6 @@ function OrderCalculator() {
         <label className="flex flex-col">
           <span>Trays in Stock:</span>
           <input
-            type="number"
             value={trays}
             onChange={(e) => setTrays(Number(e.target.value))}
             className="border rounded px-2 py-1"
@@ -150,7 +147,6 @@ function OrderCalculator() {
         <label className="flex flex-col">
           <span>Weight per Tray (lbs):</span>
           <input
-            type="number"
             value={trayWeight}
             onChange={(e) => setTrayWeight(Number(e.target.value))}
             className="border rounded px-2 py-1"
@@ -164,19 +160,20 @@ function OrderCalculator() {
             <option value="Option 3">Option 3</option>
           </datalist>
         </label>
+        <button onClick={calculate}>Calculate</button>
       </div>
 
-      <button onClick={calculate}>Calculate</button>
-
-      <div className="mt-4 p-3 border rounded bg-gray-100">
-        <p className="text-sm">
-          <strong>Exact Calculation:</strong>{" "}
-          {resultData?.exactOrder.toFixed(2)} lbs
-        </p>
-        <p className="text-lg font-semibold">
-          <strong>Rounded Off to:</strong> {resultData?.roundedOrder} lbs
-        </p>
-      </div>
+      {resultData ? (
+        <div className="mt-4 p-3 border rounded bg-gray-100">
+          <p className="text-sm">
+            <strong>Exact Calculation:</strong>{" "}
+            {resultData.exactOrder.toFixed(2)} lbs
+          </p>
+          <p className="text-lg font-semibold">
+            <strong>Rounded Off to:</strong> {resultData.roundedOrder} lbs
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
