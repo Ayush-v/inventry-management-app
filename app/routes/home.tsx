@@ -1,20 +1,67 @@
 // import db from "~/db";
+import { commitSession, destroySession, getSession } from "~/utils/session.server";
 import type { Route } from "./+types/home";
+import { useState } from "react";
+import { data, redirect, Form } from "react-router";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: "New React Router App" },
     { name: "description", content: "Welcome to React Router!" },
   ];
 }
 
-// export async function loader({ params }: Route.LoaderArgs) {
-//   const users = await db.query.usersTable.findMany();
-//   console.log(users);
-//   return users;
-// }
+export async function loader({ params, request }: Route.LoaderArgs) {
+  const session = await getSession(
+    request.headers.get("Cookie")
+  );
 
-import { useState } from "react";
+  // const user = await db.query.usersTable.findMany({
+  //   with: {
+  //     name: "wedged"
+  //   }
+  // })
+
+  // const user = await db.query.usersTable.findFirst()
+
+  console.log(session.data)
+
+  // const check = await session.data.userId === user[0].id
+
+  // console.log(session.get("userId"), check, user)
+
+  if (!session.has("userId")) {
+    // Redirect to login if they are NOT signed in (fixed the logic)
+    return redirect("/login");
+  }
+
+  // Return the session data if user is logged in
+  return data(
+    {
+      error: session.get("error"),
+      isLoggedIn: true
+    },
+    {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    }
+  );
+}
+
+// Add logout action
+export async function action({
+  request,
+}: Route.ActionArgs) {
+  const session = await getSession(
+    request.headers.get("Cookie")
+  );
+  return redirect("/login", {
+    headers: {
+      "Set-Cookie": await destroySession(session),
+    },
+  });
+}
 
 type OrderParams = {
   dailyUsage: number;
@@ -181,7 +228,17 @@ function OrderCalculator() {
 export default function Home() {
   return (
     <div>
-      <h1>Hello</h1>
+      <div className="flex justify-between items-center p-4">
+        <h1>Hello</h1>
+        <Form method="post">
+          <button
+            type="submit"
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Logout
+          </button>
+        </Form>
+      </div>
       <OrderCalculator />
     </div>
   );
